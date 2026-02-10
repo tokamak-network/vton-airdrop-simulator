@@ -1,0 +1,82 @@
+import { NextRequest, NextResponse } from "next/server";
+import { generateMockStakers } from "@/lib/mock-data";
+import { fetchStakers } from "@/lib/graph/queries";
+import type { StakerLookupResponse } from "@/lib/types";
+
+const RAY = BigInt("1000000000000000000000000000"); // 1e27
+
+const USE_SUBGRAPH =
+  process.env.NEXT_PUBLIC_SUBGRAPH_URL &&
+  !process.env.NEXT_PUBLIC_SUBGRAPH_URL.includes("YOUR_ID");
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = request.nextUrl;
+
+    const fromDate = searchParams.get("from");
+    const toDate = searchParams.get("to");
+    const minAmountStr = searchParams.get("minAmount");
+
+    if (!fromDate || !toDate || !minAmountStr) {
+      return NextResponse.json(
+        { error: "Missing required parameters: from, to, minAmount" },
+        { status: 400 }
+      );
+    }
+
+    const from = Math.floor(new Date(fromDate).getTime() / 1000);
+    const to = Math.floor(new Date(toDate).getTime() / 1000);
+    const minAmountWton = parseFloat(minAmountStr);
+
+    if (isNaN(from) || isNaN(to) || isNaN(minAmountWton)) {
+      return NextResponse.json(
+        { error: "Invalid parameter values" },
+        { status: 400 }
+      );
+    }
+
+    if (from > to) {
+      return NextResponse.json(
+        { error: "Start date must be before end date" },
+        { status: 400 }
+      );
+    }
+
+    // Convert WTON amount to RAY for subgraph query
+    const minAmountRay = (
+      BigInt(Math.floor(minAmountWton)) * RAY
+    ).toString();
+
+    let stakers;
+
+    if (USE_SUBGRAPH) {
+      stakers = await fetchStakers(minAmountRay, from, to);
+    } else {
+      // Mock data fallback
+      stakers = generateMockStakers(from, to, minAmountWton);
+    }
+
+    // Calculate summary
+    let totalStakedBigInt = BigInt(0);
+    for (const s of stakers) {
+      totalStakedBigInt += BigInt(s.totalStaked);
+    }
+
+    const response: StakerLookupResponse = {
+      stakers,
+      totalCount: stakers.length,
+      summary: {
+        uniqueStakers: stakers.length,
+        totalStakedAmount: totalStakedBigInt.toString(),
+      },
+    };
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("Staker lookup error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
