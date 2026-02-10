@@ -1,36 +1,148 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Airdrop Simulator
+
+Tool for querying and analyzing Tokamak Network staker data to simulate airdrop distributions.
+
+- Look up stakers by date range and minimum stake amount
+- View staking statistics and distribution summaries
+- Export results as CSV
+- Powered by on-chain data via The Graph subgraph (with mock data fallback)
+
+## Tech Stack
+
+| Category | Technology |
+| --- | --- |
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS 4, shadcn/ui |
+| Data Fetching | GraphQL (graphql-request), TanStack Query |
+| Blockchain | The Graph (subgraph), viem |
+| Testing | Vitest, Testing Library |
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- pnpm
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/anthropics/airdrop-simulator.git
+cd airdrop-simulator
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Copy `.env.example` to `.env.local` and fill in the values:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cp .env.example .env.local
+```
 
-## Learn More
+| Variable | Description |
+| --- | --- |
+| `NEXT_PUBLIC_SUBGRAPH_URL` | The Graph endpoint for the Tokamak airdrop subgraph |
+| `ETHEREUM_RPC_URL` | Ethereum JSON-RPC URL (Alchemy, Infura, etc.) |
 
-To learn more about Next.js, take a look at the following resources:
+> The app falls back to mock data when no subgraph URL is configured.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Running
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+pnpm dev        # Start development server
+pnpm build      # Production build
+pnpm start      # Start production server
+pnpm test       # Run tests
+pnpm test:watch # Run tests in watch mode
+pnpm lint       # Lint
+```
 
-## Deploy on Vercel
+## Project Structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+src/
+├── app/            # Next.js App Router pages and API routes
+│   └── api/        # REST API endpoints
+├── components/     # React components (UI primitives + feature components)
+└── lib/            # Shared utilities, types, GraphQL queries, mock data
+subgraph/
+├── abis/           # Contract ABIs
+├── schema.graphql  # GraphQL schema for indexed entities
+└── src/mappings/   # AssemblyScript event handlers
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Subgraph
+
+### Overview
+
+The subgraph indexes Tokamak Network contracts on Ethereum mainnet using [The Graph](https://thegraph.com/). Event handlers are written in AssemblyScript.
+
+### Indexed Contracts
+
+| Contract | Address | Start Block | Events |
+| --- | --- | --- | --- |
+| TON (ERC20) | `0x2be5e8c109e2197D077D13A82dAead6a9b3433C5` | 10,000,000 | `Transfer` |
+| TOS (ERC20) | `0x409c4D8cd5d2924b9bc5509230d16a61289c8153` | 10,000,000 | `Transfer` |
+| DepositManager V1 | `0x56E465f654393fa48f007Ed7346105c7195CEe43` | 10,837,675 | `Deposited`, `WithdrawalRequested`, `WithdrawalProcessed` |
+| DepositManager V2 | `0x0b58ca72b12f01fc05f8f252e226f3e2089bd00e` | 18,416,838 | `Deposited`, `WithdrawalRequested`, `WithdrawalProcessed` |
+| DAOCommittee | `0xd1A3fDDCCD09ceBcFCc7845dDba666B7B8e6D1fb` | 10,000,000 | `AgendaVoteCasted` |
+
+### Schema Entities
+
+- **Protocol** — Aggregate protocol-level statistics
+- **Account** — User accounts with balances and transaction history
+- **Staker** — Staker-specific deposit/withdrawal tracking
+- **StakingEvent** — Immutable record of staking events (deposit, withdrawal request, withdrawal processed)
+- **Transfer** — Immutable record of token transfers
+- **GovernanceAction** — Immutable record of DAO governance votes
+
+### Deployment
+
+```bash
+cd subgraph
+graph codegen
+graph build
+graph deploy --studio tokamak-airdrop
+```
+
+## API Reference
+
+### `GET /api/stakers`
+
+Query stakers within a date range and minimum stake amount.
+
+**Query Parameters**
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `from` | `string` | Yes | Start date (ISO 8601, e.g. `2024-01-01`) |
+| `to` | `string` | Yes | End date (ISO 8601, e.g. `2024-12-31`) |
+| `minAmount` | `string` | Yes | Minimum staked amount in WTON |
+
+**Response**
+
+```json
+{
+  "stakers": [
+    {
+      "id": "0x...",
+      "totalStaked": "1000000000000000000000000000",
+      "totalWithdrawn": "0",
+      "depositCount": 3
+    }
+  ],
+  "totalCount": 42,
+  "summary": {
+    "uniqueStakers": 42,
+    "totalStakedAmount": "..."
+  }
+}
+```
+
+Returns mock data when `NEXT_PUBLIC_SUBGRAPH_URL` is not configured.
+
+## License
+
+MIT
