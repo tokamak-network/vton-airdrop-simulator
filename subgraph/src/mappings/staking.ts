@@ -34,6 +34,7 @@ export function handleDeposited(event: Deposited): void {
 
   let protocol = getOrCreateProtocol();
   protocol.totalStaked = protocol.totalStaked.plus(event.params.amount);
+  protocol.totalTransactions = protocol.totalTransactions.plus(ONE);
   protocol.save();
 }
 
@@ -64,6 +65,7 @@ export function handleWithdrawalRequested(event: WithdrawalRequested): void {
 
   let protocol = getOrCreateProtocol();
   protocol.totalStaked = protocol.totalStaked.minus(event.params.amount);
+  protocol.totalTransactions = protocol.totalTransactions.plus(ONE);
   protocol.save();
 }
 
@@ -89,4 +91,8 @@ export function handleWithdrawalProcessed(event: WithdrawalProcessed): void {
   stakingEvent.blockNumber = event.block.number;
   stakingEvent.txHash = event.transaction.hash;
   stakingEvent.save();
+
+  let protocol = getOrCreateProtocol();
+  protocol.totalTransactions = protocol.totalTransactions.plus(ONE);
+  protocol.save();
 }

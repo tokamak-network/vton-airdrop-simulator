@@ -5,7 +5,7 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph codegen && graph build",
-    "deploy": "graph deploy --studio tokamak-airdrop"
+    "deploy": "graph deploy --studio vton-airdrop-simulator"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "^0.71.0",
