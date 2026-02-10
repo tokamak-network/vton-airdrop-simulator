@@ -522,39 +522,32 @@ function EventDetail({
 
       {/* Event table */}
       <ScrollArea className="max-h-[300px]">
-        <table className="w-full text-sm table-fixed">
-          <colgroup>
-            <col className="w-[6%]" />
-            <col className="w-[22%]" />
-            <col className="w-[22%]" />
-            <col className="w-[26%]" />
-            <col className="w-[24%]" />
-          </colgroup>
+        <table className="w-full text-sm">
           <thead>
             <tr className="text-xs font-semibold text-muted-foreground">
-              <th className="px-3 pb-2 text-left" />
+              <th className="w-8 px-2 pb-2 text-left" />
               <th className="px-3 pb-2 text-left">Date</th>
               <th className="px-3 pb-2 text-right">Amount</th>
               <th className="px-3 pb-2 text-left">Layer2</th>
-              <th className="px-3 pb-2 text-right">Tx</th>
+              <th className="px-3 pb-2 text-right whitespace-nowrap">Tx</th>
             </tr>
           </thead>
           <tbody className="text-muted-foreground">
             {events.map((evt) => (
               <tr key={evt.txHash} className="border-t border-border/40">
-                <td className="px-3 py-2.5">
+                <td className="w-8 px-2 py-2.5">
                   {evt.type === "deposit" ? (
                     <ArrowDownToLine className="h-3.5 w-3.5 text-chart-2" />
                   ) : (
                     <ArrowUpFromLine className="h-3.5 w-3.5 text-chart-3" />
                   )}
                 </td>
-                <td className="px-3 py-2.5 tabular-nums font-mono">{formatDate(evt.timestamp)}</td>
-                <td className={`px-3 py-2.5 text-right tabular-nums font-mono font-medium ${evt.type === "deposit" ? "text-chart-2" : "text-chart-3"}`}>
+                <td className="px-3 py-2.5 tabular-nums font-mono whitespace-nowrap">{formatDate(evt.timestamp)}</td>
+                <td className={`px-3 py-2.5 text-right tabular-nums font-mono font-medium whitespace-nowrap ${evt.type === "deposit" ? "text-chart-2" : "text-chart-3"}`}>
                   {evt.type === "deposit" ? "+" : "-"}{formatWton(evt.amount)}
                 </td>
-                <td className="px-3 py-2.5 font-mono truncate">{truncateAddress(evt.layer2)}</td>
-                <td className="px-3 py-2.5 text-right">
+                <td className="px-3 py-2.5 font-mono">{truncateAddress(evt.layer2)}</td>
+                <td className="px-3 py-2.5 text-right whitespace-nowrap">
                   <a
                     href={`https://etherscan.io/tx/${evt.txHash}`}
                     target="_blank"
