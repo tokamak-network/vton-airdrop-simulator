@@ -38,6 +38,7 @@ yarn-error.log*
 .mcp.json
 
 # subgraph build artifacts
+generated/
 subgraph/generated/
 subgraph/build/
 
