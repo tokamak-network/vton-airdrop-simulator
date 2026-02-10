@@ -1,0 +1,66 @@
+type Protocol @entity(immutable: false) {
+  id: ID!
+  totalAccounts: BigInt!
+  totalTransactions: BigInt!
+  totalStaked: BigInt!
+}
+
+type Account @entity(immutable: false) {
+  id: ID! # address
+  transactionCount: BigInt!
+  gasUsed: BigInt!
+  firstSeen: BigInt!
+  lastSeen: BigInt!
+  contractInteractionCount: BigInt!
+  tonBalance: BigInt!
+  tosBalance: BigInt!
+  totalStaked: BigInt!
+  stakingEventCount: BigInt!
+  transfers: [Transfer!]! @derivedFrom(field: "from")
+  stakingEvents: [StakingEvent!]! @derivedFrom(field: "account")
+  governanceActions: [GovernanceAction!]! @derivedFrom(field: "account")
+}
+
+type Transfer @entity(immutable: true) {
+  id: ID!
+  from: Account!
+  to: Account!
+  token: String! # "TON" or "TOS"
+  amount: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  txHash: Bytes!
+}
+
+type Staker @entity(immutable: false) {
+  id: ID!                              # depositor address
+  totalDeposited: BigInt!              # cumulative deposits
+  totalWithdrawn: BigInt!              # cumulative withdrawals
+  depositCount: Int!
+  withdrawalCount: Int!
+  firstStakedAt: BigInt!
+  lastStakedAt: BigInt!
+  deposits: [StakingEvent!]! @derivedFrom(field: "staker")
+}
+
+type StakingEvent @entity(immutable: true) {
+  id: ID!
+  account: Account!
+  staker: Staker!
+  type: String! # "stake", "unstake", or "withdrawal"
+  amount: BigInt!
+  layer2: Bytes! # layer2 address
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  txHash: Bytes!
+}
+
+type GovernanceAction @entity(immutable: true) {
+  id: ID!
+  account: Account!
+  type: String! # "vote" or "propose"
+  agendaId: BigInt
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  txHash: Bytes!
+}
