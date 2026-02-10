@@ -8,12 +8,22 @@ export interface StakerFilter {
   skip?: number;
 }
 
+export interface StakingEvent {
+  txHash: string;
+  type: "deposit" | "withdraw";
+  amount: string; // WTON in RAY
+  layer2: string;
+  timestamp: number;
+}
+
 export interface StakerResult {
   address: string;
-  totalStaked: string; // WTON in RAY
-  depositCount: number;
-  firstStakedAt: number;
-  lastStakedAt: number;
+  totalStaked: string; // 기간 내 스테이킹 총량 (WTON in RAY)
+  totalWithdrawn: string; // 기간 내 출금 총량 (WTON in RAY)
+  depositCount: number; // 기간 내 입금 횟수
+  withdrawCount: number; // 기간 내 출금 횟수
+  lastStakedAt: number; // 기간 내 마지막 스테이킹 시점
+  events: StakingEvent[];
 }
 
 export interface StakerLookupResponse {

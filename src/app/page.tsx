@@ -39,22 +39,23 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold">Staker Lookup</h1>
-          <p className="text-sm text-muted-foreground">
-            Search stakers by date range and minimum staking amount on Tokamak
-            Network
-          </p>
+      {/* Header */}
+      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="mx-auto flex h-16 max-w-7xl items-center px-6">
+          <div>
+            <h1 className="text-base font-semibold">Airdrop Simulator</h1>
+            <p className="text-xs text-muted-foreground">Tokamak Network Staker Lookup</p>
+          </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6">
-          <aside>
+      {/* Main content */}
+      <main className="mx-auto max-w-7xl px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-8">
+          <aside className="lg:sticky lg:top-[calc(4rem+2rem)] lg:self-start">
             <StakerFilter onSearch={handleStakerSearch} isLoading={stakerLoading} />
           </aside>
-          <section>
+          <section className="min-w-0">
             <StakerResults data={stakerData} isLoading={stakerLoading} error={stakerError} />
           </section>
         </div>

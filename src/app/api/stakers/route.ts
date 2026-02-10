@@ -56,10 +56,13 @@ export async function GET(request: NextRequest) {
       stakers = generateMockStakers(from, to, minAmountWton);
     }
 
-    // Calculate summary
+    // Only include stakers who deposited at least once in the period
+    stakers = stakers.filter((s) => s.depositCount > 0);
+
+    // Calculate summary (net = deposits - withdrawals)
     let totalStakedBigInt = BigInt(0);
     for (const s of stakers) {
-      totalStakedBigInt += BigInt(s.totalStaked);
+      totalStakedBigInt += BigInt(s.totalStaked) - BigInt(s.totalWithdrawn);
     }
 
     const response: StakerLookupResponse = {

@@ -2,12 +2,12 @@ export interface GraphStaker {
   id: string;
   totalDeposited: string;
   depositCount: number;
-  firstStakedAt: string;
   lastStakedAt: string;
 }
 
 export interface GraphStakingEventWithStaker {
   id: string;
+  type: string;
   staker: GraphStaker;
   amount: string;
   layer2: string;
