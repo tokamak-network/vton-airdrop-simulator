@@ -11,7 +11,6 @@ export function handleDeposited(event: Deposited): void {
 
   account.totalStaked = account.totalStaked.plus(event.params.amount);
   account.stakingEventCount = account.stakingEventCount.plus(ONE);
-  account.contractInteractionCount = account.contractInteractionCount.plus(ONE);
   account.save();
 
   let staker = getOrCreateStaker(event.params.depositor, event.block.timestamp);
@@ -43,7 +42,6 @@ export function handleWithdrawalRequested(event: WithdrawalRequested): void {
 
   account.totalStaked = account.totalStaked.minus(event.params.amount);
   account.stakingEventCount = account.stakingEventCount.plus(ONE);
-  account.contractInteractionCount = account.contractInteractionCount.plus(ONE);
   account.save();
 
   let staker = getOrCreateStaker(event.params.depositor, event.block.timestamp);
@@ -73,7 +71,6 @@ export function handleWithdrawalProcessed(event: WithdrawalProcessed): void {
   let account = getOrCreateAccount(event.params.depositor, event.block.timestamp);
 
   account.stakingEventCount = account.stakingEventCount.plus(ONE);
-  account.contractInteractionCount = account.contractInteractionCount.plus(ONE);
   account.save();
 
   let staker = getOrCreateStaker(event.params.depositor, event.block.timestamp);

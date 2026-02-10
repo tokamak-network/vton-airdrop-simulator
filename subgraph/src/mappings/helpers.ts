@@ -11,12 +11,8 @@ export function getOrCreateAccount(address: Address, timestamp: BigInt): Account
   if (account == null) {
     account = new Account(id);
     account.transactionCount = ZERO;
-    account.gasUsed = ZERO;
     account.firstSeen = timestamp;
     account.lastSeen = timestamp;
-    account.contractInteractionCount = ZERO;
-    account.tonBalance = ZERO;
-    account.tosBalance = ZERO;
     account.totalStaked = ZERO;
     account.stakingEventCount = ZERO;
 
