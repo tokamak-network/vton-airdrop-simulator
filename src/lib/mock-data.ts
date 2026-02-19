@@ -80,6 +80,10 @@ export function generateMockStakers(
       withdrawCount: wdCount,
       lastStakedAt: Math.min(lastStaked, to),
       events,
+      lifetimeDeposited: "0",
+      lifetimeWithdrawn: "0",
+      currentStake: "0",
+      seigniorage: "0",
     });
   }
 

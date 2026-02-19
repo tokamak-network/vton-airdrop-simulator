@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateMockStakers } from "@/lib/mock-data";
 import { fetchStakers } from "@/lib/graph/queries";
+import { fetchSeigniorageData } from "@/lib/ethereum/seigniorage";
 import type { StakerLookupResponse } from "@/lib/types";
 
 const RAY = BigInt("1000000000000000000000000000"); // 1e27
@@ -59,10 +60,26 @@ export async function GET(request: NextRequest) {
     // Only include stakers who deposited at least once in the period
     stakers = stakers.filter((s) => s.depositCount > 0);
 
+    // Fetch on-chain stakeOf for seigniorage calculation
+    if (USE_SUBGRAPH) {
+      const addresses = stakers.map((s) => s.address);
+      const stakeOfMap = await fetchSeigniorageData(addresses);
+
+      for (const s of stakers) {
+        const currentStake = stakeOfMap.get(s.address.toLowerCase()) ?? BigInt(0);
+        s.currentStake = currentStake.toString();
+        const seigniorage =
+          currentStake + BigInt(s.lifetimeWithdrawn) - BigInt(s.lifetimeDeposited);
+        s.seigniorage = (seigniorage > BigInt(0) ? seigniorage : BigInt(0)).toString();
+      }
+    }
+
     // Calculate summary (net = deposits - withdrawals)
     let totalStakedBigInt = BigInt(0);
+    let totalSeigniorageBigInt = BigInt(0);
     for (const s of stakers) {
       totalStakedBigInt += BigInt(s.totalStaked) - BigInt(s.totalWithdrawn);
+      totalSeigniorageBigInt += BigInt(s.seigniorage);
     }
 
     const response: StakerLookupResponse = {
@@ -71,6 +88,7 @@ export async function GET(request: NextRequest) {
       summary: {
         uniqueStakers: stakers.length,
         totalStakedAmount: totalStakedBigInt.toString(),
+        totalSeigniorage: totalSeigniorageBigInt.toString(),
       },
     };
 

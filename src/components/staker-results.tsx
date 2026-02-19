@@ -38,6 +38,7 @@ import {
   Download,
   Users,
   Coins,
+  TrendingUp,
   ChevronLeft,
   ChevronRight,
   ArrowUp,
@@ -133,13 +134,14 @@ export function StakerResults({ data, isLoading, error }: StakerResultsProps) {
 
   const handleCsvDownload = () => {
     if (!filtered.length) return;
-    const header = "Address,Net Staked (WTON),Deposited (WTON),Withdrawn (WTON),Deposits,Withdrawals,Last Staked\n";
+    const header = "Address,Net Staked (WTON),Deposited (WTON),Withdrawn (WTON),Seigniorage (WTON),Deposits,Withdrawals,Last Staked\n";
     const rows = filtered.map((s) => {
       const net = formatWton(netOf(s).toString());
       const dep = formatWton(s.totalStaked);
       const wd = formatWton(s.totalWithdrawn);
+      const seig = formatWton(s.seigniorage);
       const last = new Date(s.lastStakedAt * 1000).toISOString();
-      return `${s.address},${net},${dep},${wd},${s.depositCount},${s.withdrawCount},${last}`;
+      return `${s.address},${net},${dep},${wd},${seig},${s.depositCount},${s.withdrawCount},${last}`;
     });
     const csv = header + rows.join("\n");
     downloadBlob(csv, "text/csv", "stakers.csv");
@@ -177,8 +179,8 @@ export function StakerResults({ data, isLoading, error }: StakerResultsProps) {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-2 gap-4">
-          {[0, 1].map((i) => (
+        <div className="grid grid-cols-3 gap-4">
+          {[0, 1, 2].map((i) => (
             <Card key={i}>
               <CardContent className="flex items-center gap-4">
                 <Skeleton className="h-10 w-10 rounded-lg" />
@@ -231,7 +233,7 @@ export function StakerResults({ data, isLoading, error }: StakerResultsProps) {
   return (
     <div className="space-y-6">
       {/* Metric cards */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <MetricCard
           icon={<Users className="h-4 w-4" />}
           label="Stakers"
@@ -243,6 +245,12 @@ export function StakerResults({ data, isLoading, error }: StakerResultsProps) {
           label="Net Staked"
           value={`${formatWton(summary.totalNet)} WTON`}
           iconClassName="bg-chart-2/10 text-chart-2"
+        />
+        <MetricCard
+          icon={<TrendingUp className="h-4 w-4" />}
+          label="Total Seigniorage"
+          value={`${formatWton(data.summary.totalSeigniorage)} WTON`}
+          iconClassName="bg-chart-4/10 text-chart-4"
         />
       </div>
 
@@ -330,6 +338,9 @@ export function StakerResults({ data, isLoading, error }: StakerResultsProps) {
                       Net (WTON)
                       <SortIcon field="totalStaked" />
                     </TableHead>
+                    <TableHead className="text-right text-xs font-semibold">
+                      Seigniorage (WTON)
+                    </TableHead>
                     <TableHead
                       className="cursor-pointer select-none text-right text-xs font-semibold"
                       onClick={() => toggleSort("depositCount")}
@@ -366,6 +377,9 @@ export function StakerResults({ data, isLoading, error }: StakerResultsProps) {
                           <TableCell className="text-right font-mono tabular-nums text-sm font-medium py-3">
                             {formatWton(netOf(row).toString())}
                           </TableCell>
+                          <TableCell className="text-right font-mono tabular-nums text-sm text-chart-4 py-3">
+                            {formatWton(row.seigniorage)}
+                          </TableCell>
                           <TableCell className="text-right tabular-nums text-sm text-muted-foreground py-3">
                             {row.depositCount}
                           </TableCell>
@@ -375,13 +389,14 @@ export function StakerResults({ data, isLoading, error }: StakerResultsProps) {
                         </TableRow>
                         {isExpanded && (
                           <TableRow className="bg-muted/30 hover:bg-muted/30">
-                            <TableCell colSpan={4} className="p-0">
+                            <TableCell colSpan={5} className="p-0">
                               <EventDetail
                                 events={row.events}
                                 totalStaked={row.totalStaked}
                                 totalWithdrawn={row.totalWithdrawn}
                                 depositCount={row.depositCount}
                                 withdrawCount={row.withdrawCount}
+                                seigniorage={row.seigniorage}
                               />
                             </TableCell>
                           </TableRow>
@@ -391,7 +406,7 @@ export function StakerResults({ data, isLoading, error }: StakerResultsProps) {
                   })}
                   {paged.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center text-sm text-muted-foreground py-12">
+                      <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-12">
                         No stakers found matching the criteria.
                       </TableCell>
                     </TableRow>
@@ -449,12 +464,14 @@ function EventDetail({
   totalWithdrawn,
   depositCount,
   withdrawCount,
+  seigniorage,
 }: {
   events: StakingEvent[];
   totalStaked: string;
   totalWithdrawn: string;
   depositCount: number;
   withdrawCount: number;
+  seigniorage: string;
 }) {
   const depBig = BigInt(totalStaked);
   const wdBig = BigInt(totalWithdrawn);
@@ -465,7 +482,7 @@ function EventDetail({
   return (
     <div className="px-6 py-6 space-y-5">
       {/* Infographic summary */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         <Card className="py-4 gap-1.5 shadow-none">
           <CardContent className="px-4 py-0">
             <div className="flex items-center gap-1.5">
@@ -514,6 +531,22 @@ function EventDetail({
               </div>
               <span className="text-xs font-medium tabular-nums text-muted-foreground">{depPct.toFixed(0)}%</span>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="py-4 gap-1.5 shadow-none">
+          <CardContent className="px-4 py-0">
+            <div className="flex items-center gap-1.5">
+              <TrendingUp className="h-3.5 w-3.5 text-chart-4" />
+              <Badge variant="outline" className="text-chart-4 border-chart-4/30 text-xs">
+                Seigniorage
+              </Badge>
+            </div>
+            <p className="mt-2 text-base font-semibold tabular-nums font-mono">
+              {formatWton(seigniorage)}
+              <span className="ml-1 text-xs font-normal text-muted-foreground font-sans">WTON</span>
+            </p>
+            <p className="text-sm text-muted-foreground">Earned rewards</p>
           </CardContent>
         </Card>
       </div>

@@ -28,7 +28,9 @@ const STAKERS_QUERY = gql`
       staker {
         id
         totalDeposited
+        totalWithdrawn
         depositCount
+        withdrawalCount
         lastStakedAt
       }
       amount
@@ -88,6 +90,10 @@ export async function fetchStakers(
         withdrawCount: evtType === "withdraw" ? 1 : 0,
         lastStakedAt: ts,
         events: [stakingEvent],
+        lifetimeDeposited: event.staker.totalDeposited,
+        lifetimeWithdrawn: event.staker.totalWithdrawn,
+        currentStake: "0",
+        seigniorage: "0",
       });
     }
   }

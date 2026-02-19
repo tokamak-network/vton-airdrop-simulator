@@ -1,7 +1,9 @@
 export interface GraphStaker {
   id: string;
   totalDeposited: string;
+  totalWithdrawn: string;
   depositCount: number;
+  withdrawalCount: number;
   lastStakedAt: string;
 }
 

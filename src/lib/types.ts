@@ -24,6 +24,11 @@ export interface StakerResult {
   withdrawCount: number; // 기간 내 출금 횟수
   lastStakedAt: number; // 기간 내 마지막 스테이킹 시점
   events: StakingEvent[];
+  // 시뇨리지 관련 (온체인 조회)
+  lifetimeDeposited: string; // 서브그래프 누적 입금 (WTON in RAY)
+  lifetimeWithdrawn: string; // 서브그래프 누적 출금 (WTON in RAY)
+  currentStake: string; // SeigManager.stakeOf 온체인 잔액 (WTON in RAY)
+  seigniorage: string; // 계산된 시뇨리지 = currentStake + lifetimeWithdrawn - lifetimeDeposited
 }
 
 export interface StakerLookupResponse {
@@ -32,5 +37,6 @@ export interface StakerLookupResponse {
   summary: {
     uniqueStakers: number;
     totalStakedAmount: string;
+    totalSeigniorage: string;
   };
 }
