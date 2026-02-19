@@ -72,7 +72,7 @@ export function StakerResults({ data, isLoading, error }: StakerResultsProps) {
   const [sortField, setSortField] = useState<SortField>("totalStaked");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [expandedAddr, setExpandedAddr] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>("netPositive");
+  const [viewMode, setViewMode] = useState<ViewMode>("all");
 
   const filtered = useMemo(() => {
     if (!data) return [];
