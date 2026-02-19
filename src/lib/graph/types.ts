@@ -5,6 +5,7 @@ export interface GraphStaker {
   depositCount: number;
   withdrawalCount: number;
   lastStakedAt: string;
+  firstStakedAt: string;
 }
 
 export interface GraphStakingEventWithStaker {

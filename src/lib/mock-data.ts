@@ -1,5 +1,8 @@
 import type { StakerResult, StakingEvent } from "./types";
 
+// DepositManager V1 deployment: block 10837675, Sep 11 2020
+const GENESIS_TIMESTAMP = 1599782400; // 2020-09-11 00:00 UTC
+
 /**
  * Generate mock staker data for development/testing
  * when the subgraph is not yet deployed.
@@ -29,6 +32,18 @@ export function generateMockStakers(
     const totalWithdrawRay = wdCount > 0
       ? (totalDepositRay * BigInt(wdPercent)) / BigInt(100)
       : BigInt(0);
+
+    // firstStakedAt: random between genesis and `from`
+    const firstSeed = hashSeed(i + 3000);
+    const genesisToFrom = Math.max(from - GENESIS_TIMESTAMP, 1);
+    const firstStakedAt = GENESIS_TIMESTAMP + (firstSeed % genesisToFrom);
+
+    // Mock seigniorage data: currentStake = deposits - withdrawals + seigniorage bonus
+    const netDeposit = totalDepositRay - totalWithdrawRay;
+    const seigniorageSeed = hashSeed(i + 4000);
+    const seignioragePct = 5 + (seigniorageSeed % 26); // 5~30% of net deposit
+    const seigniorageRay = (netDeposit * BigInt(seignioragePct)) / BigInt(100);
+    const currentStakeRay = netDeposit + seigniorageRay;
 
     // Generate deposit events
     const events: StakingEvent[] = [];
@@ -79,11 +94,12 @@ export function generateMockStakers(
       depositCount: depCount,
       withdrawCount: wdCount,
       lastStakedAt: Math.min(lastStaked, to),
+      firstStakedAt,
       events,
-      lifetimeDeposited: "0",
-      lifetimeWithdrawn: "0",
-      currentStake: "0",
-      seigniorage: "0",
+      lifetimeDeposited: totalDepositRay.toString(),
+      lifetimeWithdrawn: totalWithdrawRay.toString(),
+      currentStake: currentStakeRay.toString(),
+      seigniorage: seigniorageRay.toString(),
     });
   }
 

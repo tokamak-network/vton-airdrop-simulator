@@ -23,6 +23,7 @@ export interface StakerResult {
   depositCount: number; // 기간 내 입금 횟수
   withdrawCount: number; // 기간 내 출금 횟수
   lastStakedAt: number; // 기간 내 마지막 스테이킹 시점
+  firstStakedAt: number; // 최초 스테이킹 시점 (unix timestamp)
   events: StakingEvent[];
   // 시뇨리지 관련 (온체인 조회)
   lifetimeDeposited: string; // 서브그래프 누적 입금 (WTON in RAY)
@@ -38,5 +39,43 @@ export interface StakerLookupResponse {
     uniqueStakers: number;
     totalStakedAmount: string;
     totalSeigniorage: string;
+  };
+}
+
+// ── Airdrop Simulation ──
+
+export interface CriteriaWeights {
+  stakingAmount: number; // 0-100
+  stakingDuration: number; // 0-100
+  seigniorage: number; // 0-100, must satisfy sum = 100
+}
+
+export interface StakerScores {
+  address: string;
+  raw: { stakingAmount: number; stakingDuration: number; seigniorage: number };
+  sqrt: { stakingAmount: number; stakingDuration: number; seigniorage: number };
+  normalized: { stakingAmount: number; stakingDuration: number; seigniorage: number };
+  compositeScore: number;
+  allocation: number; // token amount allocated
+  allocationPct: number; // percentage of total
+}
+
+export interface AirdropSimulationConfig {
+  totalTokens: number;
+  tokenSymbol: string;
+  weights: CriteriaWeights;
+  snapshotTimestamp: number; // unix timestamp for duration calculation
+}
+
+export interface AirdropSimulationResult {
+  config: AirdropSimulationConfig;
+  stakerScores: StakerScores[];
+  summary: {
+    eligibleStakers: number;
+    totalDistributed: number;
+    top10PctConcentration: number; // % of tokens held by top 10% of stakers
+    medianAllocation: number;
+    maxAllocation: number;
+    minAllocation: number;
   };
 }

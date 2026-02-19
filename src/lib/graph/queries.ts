@@ -32,6 +32,7 @@ const STAKERS_QUERY = gql`
         depositCount
         withdrawalCount
         lastStakedAt
+        firstStakedAt
       }
       amount
       layer2
@@ -89,6 +90,7 @@ export async function fetchStakers(
         depositCount: evtType === "deposit" ? 1 : 0,
         withdrawCount: evtType === "withdraw" ? 1 : 0,
         lastStakedAt: ts,
+        firstStakedAt: parseInt(event.staker.firstStakedAt, 10) || ts,
         events: [stakingEvent],
         lifetimeDeposited: event.staker.totalDeposited,
         lifetimeWithdrawn: event.staker.totalWithdrawn,
