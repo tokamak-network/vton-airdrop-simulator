@@ -1,6 +1,6 @@
 import { gql } from "graphql-request";
 import { graphClient } from "./client";
-import type { StakersQueryResponse } from "./types";
+import type { StakersQueryResponse, AllDepositorsQueryResponse } from "./types";
 import type { StakerResult } from "../types";
 
 const STAKERS_QUERY = gql`
@@ -101,4 +101,65 @@ export async function fetchStakers(
   }
 
   return Array.from(stakerMap.values());
+}
+
+const ALL_DEPOSITORS_QUERY = gql`
+  query GetAllDepositors($first: Int!, $skip: Int!) {
+    stakers(
+      where: { depositCount_gt: 0 }
+      orderBy: totalDeposited
+      orderDirection: desc
+      first: $first
+      skip: $skip
+    ) {
+      id
+      totalDeposited
+      totalWithdrawn
+      depositCount
+      withdrawalCount
+      firstStakedAt
+      lastStakedAt
+    }
+  }
+`;
+
+/**
+ * Fetch all depositors directly from the Staker entity with pagination.
+ * Returns all stakers who have deposited at least once (depositCount > 0).
+ */
+export async function fetchAllDepositors(): Promise<StakerResult[]> {
+  const PAGE_SIZE = 1000;
+  const allStakers: StakerResult[] = [];
+  let skip = 0;
+
+  while (true) {
+    const data = await graphClient.request<AllDepositorsQueryResponse>(
+      ALL_DEPOSITORS_QUERY,
+      { first: PAGE_SIZE, skip }
+    );
+
+    if (data.stakers.length === 0) break;
+
+    for (const s of data.stakers) {
+      allStakers.push({
+        address: s.id,
+        totalStaked: s.totalDeposited,
+        totalWithdrawn: s.totalWithdrawn,
+        depositCount: s.depositCount,
+        withdrawCount: s.withdrawalCount,
+        lastStakedAt: parseInt(s.lastStakedAt, 10),
+        firstStakedAt: parseInt(s.firstStakedAt, 10),
+        events: [],
+        lifetimeDeposited: s.totalDeposited,
+        lifetimeWithdrawn: s.totalWithdrawn,
+        currentStake: "0",
+        seigniorage: "0",
+      });
+    }
+
+    if (data.stakers.length < PAGE_SIZE) break;
+    skip += PAGE_SIZE;
+  }
+
+  return allStakers;
 }

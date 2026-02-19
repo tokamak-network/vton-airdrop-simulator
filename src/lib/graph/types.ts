@@ -21,3 +21,7 @@ export interface GraphStakingEventWithStaker {
 export interface StakersQueryResponse {
   stakingEvents: GraphStakingEventWithStaker[];
 }
+
+export interface AllDepositorsQueryResponse {
+  stakers: GraphStaker[];
+}

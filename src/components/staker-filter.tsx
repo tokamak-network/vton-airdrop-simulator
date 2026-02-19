@@ -156,8 +156,18 @@ export function StakerFilter({ onSearch, isLoading }: StakerFilterProps) {
                 id="min-amount"
                 type="number"
                 className="pr-16 font-mono"
-                value={minAmount}
-                onChange={(e) => setMinAmount(Number(e.target.value) || 0)}
+                value={String(minAmount)}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  const n = Number(raw);
+                  if (raw === "" || Number.isNaN(n)) {
+                    setMinAmount(0);
+                  } else {
+                    setMinAmount(n);
+                    // Force DOM sync to strip leading zeros
+                    e.target.value = String(n);
+                  }
+                }}
                 min={0}
                 step={1}
               />
