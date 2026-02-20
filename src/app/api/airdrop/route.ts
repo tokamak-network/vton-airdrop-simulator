@@ -56,13 +56,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (from > to) {
-      return NextResponse.json(
-        { error: "Start date must be before end date" },
-        { status: 400 }
-      );
-    }
-
     let stakers;
 
     if (USE_SUBGRAPH) {

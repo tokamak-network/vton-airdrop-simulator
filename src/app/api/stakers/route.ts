@@ -36,13 +36,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (from > to) {
-      return NextResponse.json(
-        { error: "Start date must be before end date" },
-        { status: 400 }
-      );
-    }
-
     // Convert WTON amount to RAY for subgraph query
     const minAmountRay = (
       BigInt(Math.floor(minAmountWton)) * RAY

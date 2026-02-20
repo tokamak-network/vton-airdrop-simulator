@@ -116,7 +116,6 @@ export function StakerFilter({ onSearch, isLoading }: StakerFilterProps) {
                 type="date"
                 value={from}
                 min={EARLIEST_DATE}
-                max={to || undefined}
                 onChange={(e) => {
                   setFrom(e.target.value);
                   setActivePreset("");
@@ -133,7 +132,6 @@ export function StakerFilter({ onSearch, isLoading }: StakerFilterProps) {
                 type="date"
                 value={to}
                 min={from || undefined}
-                max={today()}
                 onChange={(e) => {
                   setTo(e.target.value);
                   setActivePreset("");
